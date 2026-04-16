@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP BTP Integration Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#f5f6f7;color:#32363a}
+.header{background:#0a6ed1;color:white;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:16px;font-weight:500}
+.sap-logo{background:white;color:#0a6ed1;font-weight:700;font-size:13px;padding:4px 8px;border-radius:4px}
+.nav{background:white;border-bottom:1px solid #e4e4e4;padding:0 24px;display:flex;gap:4px}
+.nav button{padding:12px 20px;border:none;background:none;cursor:pointer;font-size:14px;color:#6a6d70;border-bottom:3px solid transparent}
+.nav button.active{color:#0a6ed1;border-bottom-color:#0a6ed1;font-weight:500}
+.nav button:hover{color:#0a6ed1}
+.content{padding:24px;max-width:1200px;margin:0 auto}
+.card{background:white;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.1);margin-bottom:20px;overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid #e4e4e4;display:flex;justify-content:space-between;align-items:center}
+.card-header h2{font-size:15px;font-weight:500;color:#32363a}
+.card-header span{font-size:12px;color:#6a6d70;background:#f5f6f7;padding:4px 10px;border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th{background:#f5f6f7;padding:10px 16px;text-align:left;font-size:12px;font-weight:600;color:#6a6d70;text-transform:uppercase;letter-spacing:0.5px}
+td{padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:14px}
+tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.success{background:#e8f5e9;color:#2e7d32}
+.badge.warning{background:#fff8e1;color:#f57f17}
+.badge.error{background:#ffebee;color:#c62828}
+.badge.info{background:#e3f2fd;color:#1565c0}
+.badge.outbound{background:#e8eaf6;color:#283593}
+.badge.inbound{background:#e0f2f1;color:#00695c}
+.btn{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500}
+.btn-primary{background:#0a6ed1;color:white}
+.btn-primary:hover{background:#085db4}
+.btn-secondary{background:white;color:#0a6ed1;border:1px solid #0a6ed1}
+.btn-secondary:hover{background:#e8f1fb}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:600;color:#6a6d70;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:1px solid #d9d9d9;border-radius:6px;font-size:14px;outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#0a6ed1}
+.form-actions{padding:0 20px 20px;display:flex;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:white;border-radius:8px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.1);text-align:center}
+.stat-card .number{font-size:32px;font-weight:700;color:#0a6ed1}
+.stat-card .label{font-size:12px;color:#6a6d70;margin-top:4px}
+.toast{position:fixed;bottom:24px;right:24px;color:white;padding:14px 20px;border-radius:8px;font-size:14px;z-index:999;display:none;max-width:360px;transition:all 0.3s}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.info{background:#0a6ed1}
+.section{display:none}
+.section.active{display:block}
+.odata-box{background:#1e1e1e;color:#9cdcfe;padding:16px 20px;font-family:monospace;font-size:12px;line-height:1.8;overflow-x:auto;max-height:400px;overflow-y:auto}
+.info-strip{background:#e3f2fd;border-left:4px solid #0a6ed1;padding:10px 16px;font-size:13px;color:#1565c0;margin-bottom:16px;border-radius:0 6px 6px 0}
+.info-strip code{background:#bbdefb;padding:2px 6px;border-radius:4px;font-family:monospace}
+code{font-family:monospace;font-size:12px;background:#f5f6f7;padding:2px 6px;border-radius:4px}
+.empty{text-align:center;padding:40px;color:#6a6d70;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="sap-logo">SAP</span>
+  <h1>BTP Integration Demo &nbsp;|&nbsp; CAP + RAP + Integration Suite &nbsp;|&nbsp; SAP Business Application Studio</h1>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showSection('books', this)">📚 Books Catalog</button>
+  <button onclick="showSection('orders', this)">📦 Orders</button>
+  <button onclick="showSection('integration', this)">🔗 Integration Suite</button>
+  <button onclick="showSection('odata', this)">⚡ OData API</button>
+</div>
+
+<div class="content">
+
+  <!-- BOOKS SECTION -->
+  <div id="books" class="section active">
+    <div class="info-strip">
+      CDS Entity: <strong>Books</strong> exposed via <strong>CatalogService</strong> (read-only, public) and <strong>AdminService</strong> (full CRUD).
+      OData V4 endpoint: <code>/catalog/Books</code> &nbsp;|&nbsp; <code>/admin/Books</code>
+    </div>
+    <div class="stats">
+      <div class="stat-card"><div class="number" id="totalBooks">6</div><div class="label">Total Books</div></div>
+      <div class="stat-card"><div class="number" id="availableBooks">5</div><div class="label">Available</div></div>
+      <div class="stat-card"><div class="number" id="lowStockBooks">1</div><div class="label">Low Stock</div></div>
+      <div class="stat-card"><div class="number" id="totalAuthors">4</div><div class="label">Authors</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Books — AdminService.Books (OData V4)</h2>
+        <span id="bookCount">6 items</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Genre</th>
+            <th>Stock</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="booksTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Place Order — CAP Action: <code>placeOrder(bookId, quantity, customer, email)</code></h2>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Book</label>
+          <select id="orderBookId"></select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="orderQty" value="1" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" id="orderCustomer" placeholder="John Smith">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="orderEmail" placeholder="john@example.com">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="placeOrder()">Place Order → POST /admin/placeOrder</button>
+        <button class="btn btn-secondary" onclick="showSection('orders', document.querySelectorAll('.nav button')[1])">View All Orders</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS SECTION -->
+  <div id="orders" class="section">
+    <div class="info-strip">
+      CDS Entity: <strong>Orders</strong> exposed via <strong>AdminService</strong>.
+      Each order auto-triggers an outbound iFlow to S/4HANA SD via BTP Integration Suite.
+      OData V4: <code>/admin/Orders</code>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Orders — AdminService.Orders</h2>
+        <span id="orderCount">3 items</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Order No</th>
+            <th>Customer</th>
+            <th>Email</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INTEGRATION SECTION -->
+  <div id="integration" class="section">
+    <div class="info-strip">
+      Simulates <strong>BTP Integration Suite iFlow Monitor</strong>.
+      Each order auto-triggers an outbound message to S/4HANA SD module.
+      Entity: <code>/admin/IntegrationLogs</code>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Integration Logs — BTP Integration Suite iFlow Monitor</h2>
+        <span id="logCount">4 items</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Message ID</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Direction</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="integrationTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Trigger iFlow — CAP Action: <code>triggerIntegration(source, target, payload)</code></h2>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Source System</label>
+          <input type="text" id="intSource" placeholder="CAP-OrderService">
+        </div>
+        <div class="form-group">
+          <label>Target System</label>
+          <input type="text" id="intTarget" placeholder="S4HANA-SD">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Payload (JSON)</label>
+          <textarea id="intPayload" rows="3" placeholder='{"orderId":"123","amount":99.99}'></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="triggerIntegration()">Trigger iFlow → POST /admin/triggerIntegration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ODATA SECTION -->
+  <div id="odata" class="section">
+    <div class="info-strip">
+      Live OData V4 responses from your CAP server running on SAP BTP.
+      Click <strong>Fetch</strong> to call real endpoints from your CAP backend.
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>OData V4 Service Endpoints</h2>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Endpoint</th><th>Service</th><th>Description</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/catalog/Books</code></td>
+            <td>CatalogService</td>
+            <td>Read-only books (public)</td>
+            <td><button class="btn btn-secondary" onclick="fetchOData('/catalog/Books')">Fetch Live</button></td>
+          </tr>
+          <tr>
+            <td><code>/catalog/Authors</code></td>
+            <td>CatalogService</td>
+            <td>All authors</td>
+            <td><button class="btn btn-secondary" onclick="fetchOData('/catalog/Authors')">Fetch Live</button></td>
+          </tr>
+          <tr>
+            <td><code>/admin/Books</code></td>
+            <td>AdminService</td>
+            <td>Full CRUD books</td>
+            <td><button class="btn btn-secondary" onclick="fetchOData('/admin/Books')">Fetch Live</button></td>
+          </tr>
+          <tr>
+            <td><code>/admin/Orders</code></td>
+            <td>AdminService</td>
+            <td>All orders</td>
+            <td><button class="btn btn-secondary" onclick="fetchOData('/admin/Orders')">Fetch Live</button></td>
+          </tr>
+          <tr>
+            <td><code>/admin/IntegrationLogs</code></td>
+            <td>AdminService</td>
+            <td>iFlow message logs</td>
+            <td><button class="btn btn-secondary" onclick="fetchOData('/admin/IntegrationLogs')">Fetch Live</button></td>
+          </tr>
+          <tr>
+            <td><code>/catalog/$metadata</code></td>
+            <td>CatalogService</td>
+            <td>OData EDMX metadata</td>
+            <td><button class="btn btn-secondary" onclick="window.open('/catalog/$metadata','_blank')">Open</button></td>
+          </tr>
+          <tr>
+            <td><code>/admin/$metadata</code></td>
+            <td>AdminService</td>
+            <td>Admin OData EDMX</td>
+            <td><button class="btn btn-secondary" onclick="window.open('/admin/$metadata','_blank')">Open</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="odataResult" style="display:none; margin-top:0;">
+        <div class="card-header" style="border-top:1px solid #e4e4e4">
+          <h2 id="odataEndpoint"></h2>
+          <span id="odataCount"></span>
+        </div>
+        <div class="odata-box" id="odataBox"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var books = [
+  {ID:'2001',title:'One Hundred Years of Solitude',authorName:'Gabriel García Márquez',genre:'Fiction',stock:45,price:14.99,currency:'USD',status:'AVAILABLE'},
+  {ID:'2002',title:'Norwegian Wood',authorName:'Haruki Murakami',genre:'Fiction',stock:30,price:12.99,currency:'USD',status:'AVAILABLE'},
+  {ID:'2003',title:'Purple Hibiscus',authorName:'Chimamanda Ngozi Adichie',genre:'Fiction',stock:20,price:11.99,currency:'USD',status:'AVAILABLE'},
+  {ID:'2004',title:'1984',authorName:'George Orwell',genre:'Dystopian',stock:60,price:9.99,currency:'USD',status:'AVAILABLE'},
+  {ID:'2005',title:'Love in the Time of Cholera',authorName:'Gabriel García Márquez',genre:'Romance',stock:5,price:13.99,currency:'USD',status:'LOW_STOCK'},
+  {ID:'2006',title:'Kafka on the Shore',authorName:'Haruki Murakami',genre:'Magical Realism',stock:25,price:15.99,currency:'USD',status:'AVAILABLE'}
+];
+
+var orders = [
+  {ID:'3001',orderNo:'ORD-2024-001',customer:'John Smith',email:'john@example.com',status:'DELIVERED',total:29.98,currency:'USD',createdAt:'2024-01-15'},
+  {ID:'3002',orderNo:'ORD-2024-002',customer:'Sarah Connor',email:'sarah@example.com',status:'PENDING',total:12.99,currency:'USD',createdAt:'2024-02-10'},
+  {ID:'3003',orderNo:'ORD-2024-003',customer:'Mike Johnson',email:'mike@example.com',status:'PROCESSING',total:24.98,currency:'USD',createdAt:'2024-03-05'}
+];
+
+var logs = [
+  {ID:'L001',messageId:'MSG-1001',source:'CAP-OrderService',target:'S4HANA-SD',direction:'OUTBOUND',status:'SUCCESS',createdAt:'2024-03-05 14:23:11'},
+  {ID:'L002',messageId:'MSG-1002',source:'S4HANA-MM',target:'CAP-Catalog',direction:'INBOUND',status:'SUCCESS',createdAt:'2024-03-06 09:11:44'},
+  {ID:'L003',messageId:'MSG-1003',source:'CAP-OrderService',target:'External-ERP',direction:'OUTBOUND',status:'FAILED',createdAt:'2024-03-07 16:45:00'},
+  {ID:'L004',messageId:'MSG-1004',source:'BPA-Workflow',target:'CAP-OrderService',direction:'INBOUND',status:'SUCCESS',createdAt:'2024-03-08 11:30:22'}
+];
+
+function statusBadge(s) {
+  var m = {AVAILABLE:'success',LOW_STOCK:'warning',OUT_OF_STOCK:'error',
+           PENDING:'warning',PROCESSING:'info',DELIVERED:'success',
+           FAILED:'error',SUCCESS:'success',INBOUND:'inbound',OUTBOUND:'outbound'};
+  return '<span class="badge '+(m[s]||'info')+'">'+s+'</span>';
+}
+
+function dirBadge(d) {
+  return '<span class="badge '+(d==='OUTBOUND'?'outbound':'inbound')+'">'+d+'</span>';
+}
+
+function renderBooks() {
+  var sel = document.getElementById('orderBookId');
+  sel.innerHTML = books.map(function(b) {
+    return '<option value="'+b.ID+'">'+b.title+' (Stock: '+b.stock+')</option>';
+  }).join('');
+
+  document.getElementById('booksTable').innerHTML = books.map(function(b) {
+    return '<tr><td><strong>'+b.title+'</strong></td><td>'+b.authorName+'</td><td>'+b.genre+'</td><td>'+b.stock+'</td><td>'+b.currency+' '+b.price.toFixed(2)+'</td><td>'+statusBadge(b.status)+'</td></tr>';
+  }).join('');
+
+  document.getElementById('bookCount').textContent = books.length + ' items';
+  document.getElementById('totalBooks').textContent = books.length;
+  document.getElementById('availableBooks').textContent = books.filter(function(b){ return b.status==='AVAILABLE'; }).length;
+  document.getElementById('lowStockBooks').textContent = books.filter(function(b){ return b.status==='LOW_STOCK'; }).length;
+}
+
+function renderOrders() {
+  document.getElementById('ordersTable').innerHTML = orders.map(function(o) {
+    return '<tr><td><strong>'+o.orderNo+'</strong></td><td>'+o.customer+'</td><td>'+o.email+'</td><td>'+o.currency+' '+parseFloat(o.total).toFixed(2)+'</td><td>'+statusBadge(o.status)+'</td><td>'+o.createdAt+'</td></tr>';
+  }).join('');
+  document.getElementById('orderCount').textContent = orders.length + ' items';
+}
+
+function renderLogs() {
+  document.getElementById('integrationTable').innerHTML = logs.map(function(l) {
+    return '<tr><td><code>'+l.messageId+'</code></td><td>'+l.source+'</td><td>'+l.target+'</td><td>'+dirBadge(l.direction)+'</td><td>'+statusBadge(l.status)+'</td><td>'+l.createdAt+'</td></tr>';
+  }).join('');
+  document.getElementById('logCount').textContent = logs.length + ' items';
+}
+
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.nav button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || 'info');
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 4000);
+}
+
+function placeOrder() {
+  var bookId = document.getElementById('orderBookId').value;
+  var qty = parseInt(document.getElementById('orderQty').value);
+  var customer = document.getElementById('orderCustomer').value.trim();
+  var email = document.getElementById('orderEmail').value.trim();
+
+  if (!customer) { toast('Please enter customer name', 'error'); return; }
+  if (!email) { toast('Please enter email', 'error'); return; }
+
+  var book = books.find(function(b){ return b.ID === bookId; });
+  if (!book) { toast('Book not found!', 'error'); return; }
+  if (book.stock < qty) { toast('Insufficient stock! Available: ' + book.stock, 'error'); return; }
+
+  var orderNo = 'ORD-' + Date.now();
+  var total = parseFloat((book.price * qty).toFixed(2));
+
+  orders.unshift({
+    ID: Date.now()+'', orderNo: orderNo, customer: customer, email: email,
+    status: 'PENDING', total: total, currency: 'USD',
+    createdAt: new Date().toISOString().split('T')[0]
+  });
+
+  book.stock -= qty;
+  if (book.stock === 0) book.status = 'OUT_OF_STOCK';
+  else if (book.stock <= 5) book.status = 'LOW_STOCK';
+  else book.status = 'AVAILABLE';
+
+  logs.unshift({
+    ID: 'L'+Date.now(), messageId: 'MSG-'+Date.now(),
+    source: 'CAP-OrderService', target: 'S4HANA-SD',
+    direction: 'OUTBOUND', status: 'SUCCESS',
+    createdAt: new Date().toLocaleString()
+  });
+
+  renderBooks(); renderOrders(); renderLogs();
+  document.getElementById('orderCustomer').value = '';
+  document.getElementById('orderEmail').value = '';
+  toast('✅ Order ' + orderNo + ' placed! Total: USD ' + total.toFixed(2) + ' | iFlow triggered → S4HANA-SD', 'success');
+}
+
+function triggerIntegration() {
+  var src = document.getElementById('intSource').value.trim();
+  var tgt = document.getElementById('intTarget').value.trim();
+  var payload = document.getElementById('intPayload').value.trim();
+
+  if (!src || !tgt) { toast('Please fill source and target systems', 'error'); return; }
+
+  logs.unshift({
+    ID: 'L'+Date.now(), messageId: 'IFLOW-'+Date.now(),
+    source: src, target: tgt,
+    direction: 'OUTBOUND', status: 'SUCCESS',
+    createdAt: new Date().toLocaleString()
+  });
+
+  renderLogs();
+  document.getElementById('intSource').value = '';
+  document.getElementById('intTarget').value = '';
+  document.getElementById('intPayload').value = '';
+  toast('✅ iFlow triggered! ' + src + ' → ' + tgt, 'success');
+}
+
+async function fetchOData(endpoint) {
+  try {
+    var res = await fetch(endpoint + '?$format=json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    document.getElementById('odataBox').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('odataEndpoint').textContent = 'GET ' + endpoint;
+    var count = data.value ? data.value.length + ' records' : '';
+    document.getElementById('odataCount').textContent = count;
+    document.getElementById('odataResult').style.display = 'block';
+    toast('✅ Live data fetched from ' + endpoint, 'success');
+  } catch(e) {
+    var mockData = {
+      '@odata.context': '$metadata#' + endpoint.split('/').pop(),
+      '@odata.count': endpoint.includes('Books') ? books.length : endpoint.includes('Orders') ? orders.length : logs.length,
+      'value': endpoint.includes('Books') ? books : endpoint.includes('Orders') ? orders : logs
+    };
+    document.getElementById('odataBox').textContent = JSON.stringify(mockData, null, 2);
+    document.getElementById('odataEndpoint').textContent = 'GET ' + endpoint + ' (mock — open from CAP server URL)';
+    document.getElementById('odataCount').textContent = mockData['@odata.count'] + ' records';
+    document.getElementById('odataResult').style.display = 'block';
+    toast('Showing mock data. For live data open from CAP server port 4004', 'info');
+  }
+}
+
+renderBooks();
+renderOrders();
+renderLogs();
+</script>
+</body>
+</html>

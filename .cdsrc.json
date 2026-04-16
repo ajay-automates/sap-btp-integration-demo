@@ -1,0 +1,12 @@
+{
+  "requires": {
+    "db": {
+      "kind": "sqlite",
+      "credentials": { "database": ":memory:" }
+    },
+    "auth": { "kind": "mocked" }
+  },
+  "server": {
+    "port": 4004
+  }
+}

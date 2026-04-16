@@ -1,0 +1,34 @@
+{
+  "xsappname": "sap-btp-integration-demo",
+  "tenant-mode": "dedicated",
+  "description": "SAP BTP Integration Demo Security",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.admin",
+      "description": "Admin access to manage books and orders"
+    },
+    {
+      "name": "$XSAPPNAME.viewer",
+      "description": "Read-only access to catalog"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Admin",
+      "description": "Full admin access",
+      "scope-references": ["$XSAPPNAME.admin"]
+    },
+    {
+      "name": "Viewer",
+      "description": "Read only access",
+      "scope-references": ["$XSAPPNAME.viewer"]
+    }
+  ],
+  "role-collections": [
+    {
+      "name": "BTP-Demo-Admin",
+      "description": "BTP Demo Admin Role Collection",
+      "role-template-references": ["$XSAPPNAME.Admin"]
+    }
+  ]
+}

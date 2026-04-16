@@ -1,0 +1,7 @@
+ID,title,author_ID,genre,stock,price,currency,status
+2001,One Hundred Years of Solitude,1001,Fiction,45,14.99,USD,AVAILABLE
+2002,Norwegian Wood,1002,Fiction,30,12.99,USD,AVAILABLE
+2003,Purple Hibiscus,1003,Fiction,20,11.99,USD,AVAILABLE
+2004,1984,1004,Dystopian,60,9.99,USD,AVAILABLE
+2005,Love in the Time of Cholera,1001,Romance,15,13.99,USD,LOW_STOCK
+2006,Kafka on the Shore,1002,Magical Realism,25,15.99,USD,AVAILABLE

@@ -1,0 +1,28 @@
+{
+  "_version": "1.59.0",
+  "sap.app": {
+    "id": "sap.btp.demo.bookshop",
+    "type": "application",
+    "title": "BTP Integration Demo",
+    "description": "SAP BTP CAP + Integration Suite Demo",
+    "applicationVersion": { "version": "1.0.0" },
+    "dataSources": {
+      "mainService": {
+        "uri": "/catalog/",
+        "type": "OData",
+        "settings": { "odataVersion": "4.0" }
+      }
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "sap.btp.demo.bookshop.view.App",
+      "type": "XML",
+      "id": "app"
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": { "sap.m": {}, "sap.ui.core": {} }
+    }
+  }
+}
